@@ -23,8 +23,9 @@ local sgui = SGUI.new('SAM', true)
 sgui:addButtonMenu(
   'main_menu',
   '::SAM V2::',
+  { type = 'label', name = 'Song' },
   {
-    name = 'Song Open',
+    name = 'Open',
     func = function()
       local packet = SAM:GetSongs()
 
@@ -37,7 +38,7 @@ sgui:addButtonMenu(
     end
   },
   {
-    name = 'Song New',
+    name = 'New',
     func = function()
       local name = sgui:getUserInput('New Song Name', 'New Name: ')
       if not name then return end
@@ -49,7 +50,7 @@ sgui:addButtonMenu(
     end
   },
   {
-    name = 'Song Duplicate',
+    name = 'Duplicate',
     func = function()
       local packet = SAM:GetSongs()
 
@@ -61,12 +62,16 @@ sgui:addButtonMenu(
       sgui:showLayer('duplicate_song', { listbox = packet.data.result })
     end
   },
-  { name = 'Song Bounce' },
-  { name = 'Song Remove' },
-  { name = 'Console Open' },
-  { name = 'Console New' },
-  { name = 'Console Duplicate' },
-  { name = 'Console Remove' },
+  { name = 'Bounce' },
+  { name = 'Remove' },
+  { type = 'spacer' },
+  { type = 'label', name = 'Console' },
+  { name = 'Open' },
+  { name = 'New' },
+  { name = 'Duplicate' },
+  { name = 'Remove' },
+  { type = 'spacer' },
+  { type = 'label', name = 'General' },
   { name = 'Upload All' }
 )
 

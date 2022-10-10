@@ -1,10 +1,10 @@
 --------------------------------------------------------------------------------
 -- IMPORTS
 --------------------------------------------------------------------------------
-local COUNT = require("helpers.counter")
-local REP   = require("helpers.rep")
+local COUNT = require('helpers.counter')
+local REP   = require('helpers.rep')
 -- Scythe import --
-local GUI  = require("gui.core")
+local GUI  = require('gui.core')
 local Font = require('public.font')
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ SGUI.__index = SGUI
 
 -- Constructor of SGUI
 function SGUI.new(name, isDock)
-  name   = name or "default"
+  name   = name or 'default'
   isDock = isDock or false
   if isDock then isDock = 257 else isDock = 0 end
 
@@ -41,17 +41,80 @@ function SGUI.new(name, isDock)
 
   instance.wln       = {}
   instance.layers    = {}
-  instance.lastLayer = ""
-  instance.X = COUNT.new()
-  instance.Y = COUNT.new()
+  instance.lastLayer = ''
+  instance.X         = COUNT.new()
+  instance.Y         = COUNT.new()
 
   return instance
 end
 
 -- Add a layer that consists of a button menu
 function SGUI:addButtonMenu(name, title, ...)
-  name  = name or "default"
-  title = title or "default"
+  name  = name or 'default'
+  title = title or 'default'
+  local items = {...}
+  self.X:set(10)
+  self.Y:set(10)
+
+  local layer = GUI.createLayer({ name = name })
+  layer:hide()
+  layer:addElements( GUI.createElement({
+    name    = 'lbl_title_'..name,
+    type    = 'Label',
+    caption = title,
+    x       = self.X:get(),
+    y       = self.Y:add(30),
+  }))
+
+  -- if multiple buttons have the same name, add a label and this will create a
+  -- unique button name for each including the last label name
+  local category = nil
+
+  for i, item in ipairs(items) do
+    if item['type'] == 'spacer' then
+      self.Y:add(30)
+
+    elseif item['type'] == 'label' then
+      layer:addElements( GUI.createElement({
+        name    = 'lbl_label_'..item.name,
+        type    = 'Label',
+        caption = item.name,
+        x       = self.X:get(),
+        y       = self.Y:add(30),
+      }))
+
+      category = item.name
+
+    else
+      if item['name'] == nil then
+        REP.print('Error: Missing name from addButtonMenu')
+        return
+      end
+
+      local newButton = {
+        name    = 'btn_'..name..'_'..category..'_'..item.name,
+        type    = 'Button',
+        caption = item.name,
+        x       = self.X:get(),
+        y       = self.Y:add(30),
+        w       = 150
+      }
+
+      if item['func'] ~= nil then
+        newButton.func = item.func
+      end
+
+      layer:addElements( GUI.createElement(newButton) )
+    end
+  end
+
+  self:_addLayer(name, layer)
+end
+
+-- Add a layer that consists of a button menu
+function SGUI:addButtonMenu_bup(name, title, ...)
+  name  = name or 'default'
+  title = title or 'default'
   local buttons = {...}
   self.X:set(10)
   self.Y:set(10)
@@ -92,11 +155,11 @@ end
 
 -- Add layer to choose from a list of options
 function SGUI:addChooseMenu(name, title, okFunc, cancelFunc)
-  name       = name or "default"
-  title      = title or "default"
+  name       = name or 'default'
+  title      = title or 'default'
   -- options    = options or {'one', 'two', 'three'}
-  okFunc     = okFunc or function() REP.print("Warning: Need to add okFunc") end
-  cancelFunc = cancelFunc or function() REP.print("Warning: Need to add okFunc") end
+  okFunc     = okFunc or function() REP.print('Warning: Need to add okFunc') end
+  cancelFunc = cancelFunc or function() REP.print('Warning: Need to add okFunc') end
 
   self.X:set(10)
   self.Y:set(10)
@@ -163,8 +226,8 @@ end
 
 -- Get user input with popup and textbox
 function SGUI:getUserInput(title, label)
-  -- local ret, retvals_csv = reaper.GetUserInputs( "New Song", 1,"New song name", "" )
-  local status, name = reaper.GetUserInputs( title, 1, label, "" )
+  -- local ret, retvals_csv = reaper.GetUserInputs( 'New Song', 1,'New song name', '' )
+  local status, name = reaper.GetUserInputs( title, 1, label, '' )
   if not status then return end
   return name
 end
