@@ -21,24 +21,24 @@ Files = {
   bash = '/bin/bash -c '
 }
 
-function Files:_argsJoin(...)
+function Files._argsJoin(...)
   local args = {self.bash, '"', ..., '"'}
   return table.concat(args, " ")
 end
 
-function Files:_run(...)
-  local command = self:_argsJoin(...)
+function Files._run(...)
+  local command = self._argsJoin(...)
   return reaper.ExecProcess(command, 0):sub(3)
 end
 
-function Files:Mkdir(path)
-  self:_run(
+function Files.mkdir(path)
+  self._run(
     r('[ -d 1# ] || mkdir -p 1#', q(path))
   )
 end
 
-function Files:Copy(source, destination)
-  self:_run(
+function Files.copy(source, destination)
+  self._run(
     r('cp 1# 2#', q(source), q(destination))
   )
 end
