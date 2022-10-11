@@ -29,11 +29,11 @@ function REP.print(message,ret)
   end
 end
 
--- Used for creating even spacing between GUI elements
-function REP.addTo(var, distance)
-  local old = var
-  var = var + distance
-  return old, var
-end
+-- -- Used for creating even spacing between GUI elements
+-- function REP.addTo(var, distance)
+--   local old = var
+--   var = var + distance
+--   return old, var
+-- end
 
 return REP

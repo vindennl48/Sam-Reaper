@@ -11,7 +11,7 @@ function r(text, ...)
   local args = {...}
 
   for i, value in ipairs(args) do
-    text = text:gsub(i..'#', value)
+    text = text:gsub('#'..i, value)
   end
 
   return text
@@ -33,13 +33,25 @@ end
 
 function Files.mkdir(path)
   self._run(
-    r('[ -d 1# ] || mkdir -p 1#', q(path))
+    r('[ -d #1 ] || mkdir -p #1', q(path))
   )
 end
 
 function Files.copy(source, destination)
   self._run(
-    r('cp 1# 2#', q(source), q(destination))
+    r('cp #1 #2', q(source), q(destination))
+  )
+end
+
+function Files.compress(source, destination)
+  self._run(
+    r('tar -zcvf #1 #2', q(destination), q(source))
+  )
+end
+
+function Files.extract(source, destination)
+  self._run(
+    r('tar -zxvf #1 -C #2 #3', q(source), q(destination), '--strip-components=1')
   )
 end
 
