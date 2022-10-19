@@ -15,7 +15,7 @@ package.path = package.path..";"..libPath.."?.lua"
 --------------------------------------------------------------------------------
 local REP  = require("helpers.rep")
 local SGUI = require("helpers.sgui")
-local SAM  = require("helpers.samLibrary")
+-- local SAM  = require("helpers.samLibrary")
 --------------------------------------------------------------------------------
 
 local sgui = SGUI.new('SAM', true)
@@ -27,14 +27,14 @@ sgui:addButtonMenu(
   {
     name = 'Open',
     func = function()
-      local packet = SAM:GetSongs()
+      local packet = REP.callApi('dbjson', 'get', {type = "songs"})
 
-      if not packet.data.status then
-        REP.print('Error getting songs.. Error: ', packet.data.errorMessage)
+      if not packet.status then
+        REP.print('Error getting songs.. Error: ', packet.errorMessage)
         return;
       end
 
-      sgui:showLayer('open_song', { listbox = packet.data.result })
+      sgui:showLayer('open_song', { listbox = packet.result })
     end
   },
   {
@@ -46,24 +46,53 @@ sgui:addButtonMenu(
       name = name:gsub("[ -]", "_")
       name = name:gsub("[^a-zA-Z_]", "")
 
-      SAM:NewSong(name)
+      local packet = REP.callApi('dbjson', 'new', {type = "song", name = name})
+
+      if not packet.status then
+        REP.print('Error adding song to database.. Error: ', packet.errorMessage)
+        return;
+      end
+
+      packet = REP.callApi('files', 'new', {type = "song", name = name, daw  = 'reaper'})
+
+      if not packet.status then
+        REP.print('Error creating files for new song.. Error: ', packet.errorMessage)
+        -- need to do some cleanup
+        REP.callApi('dbjson', 'remove', {type = "song", name = name})
+        return;
+      end
+
+      REP.openNewTab()
+      REP.openProject(packet.result)
     end
   },
   {
     name = 'Duplicate',
     func = function()
-      local packet = SAM:GetSongs()
+      local packet = REP.callApi('dbjson', 'get', {type = "songs"})
 
-      if not packet.data.status then
-        REP.print('Error getting songs.. Error: ', packet.data.errorMessage)
+      if not packet.status then
+        REP.print('Error getting songs.. Error: ', packet.errorMessage)
         return;
       end
 
-      sgui:showLayer('duplicate_song', { listbox = packet.data.result })
+      sgui:showLayer('duplicate_song', { listbox = packet.result })
     end
   },
   { name = 'Bounce' },
-  { name = 'Remove' },
+  {
+    name = 'Remove',
+    func = function()
+      local packet = REP.callApi('dbjson', 'get', {type = "songs"})
+
+      if not packet.status then
+        REP.print('Error getting songs.. Error: ', packet.errorMessage)
+        return;
+      end
+
+      sgui:showLayer('remove_song', { listbox = packet.result })
+    end
+  },
   { type = 'spacer' },
   { type = 'label', name = 'Console' },
   { name = 'Open' },
@@ -114,5 +143,36 @@ sgui:addChooseMenu(
     sgui:showPreviousLayer()
   end
 )
+
+sgui:addChooseMenu(
+  'remove_song',
+  '::Remove Song::',
+
+  -- okFunc
+  function()
+    local name = sgui:getCurrentLayer():val()
+    local packet = REP.callApi('dbjson', 'remove', {type = "song", name = name})
+
+    if not packet.status then
+      REP.print('Error removing song from database.. Error: ', packet.errorMessage)
+      sgui:showPreviousLayer()
+      return
+    end
+
+    packet = REP.callApi('files', 'remove', {type = "song", name = name, daw = 'reaper'})
+
+    if not packet.status then
+      REP.print('Error removing song files but was removed from database.. Error: ', packet.errorMessage)
+    end
+
+    sgui:showPreviousLayer()
+  end,
+
+  -- cancelFunc
+  function()
+    sgui:showPreviousLayer()
+  end
+)
+
 
 sgui:run('main_menu')

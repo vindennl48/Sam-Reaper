@@ -13,16 +13,17 @@ SAM = {
     getSongs      = '-l',
     getSong       = '-s',
     newSong       = '-n',
-    getDawHomeDir = '-w'
+    getDawHomeDir = '-w',
+    call          = '-c'
   }
 }
 
 -- Get a list of all song names in the database
 function SAM:GetSongs()
   -- local packet = self:_run(self.args.getSongs)
-  local packet = self:_run(self.args.getSongs)
-  if not packet.data.status then
-    REP.print('Error: ', packet.data.error_message)
+  local packet = self:_run(self.args.call, 'dbjson', 'get')
+  if not packet.status then
+    REP.print('Error: ', packet.error_message)
   end
   return packet
 end

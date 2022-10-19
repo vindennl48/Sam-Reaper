@@ -1,14 +1,39 @@
-function scriptPath(...)
-  local parent = debug.getinfo(2, 'S').source:sub(2):match('(.*/)')
-  for i, arg in ipairs({...}) do
-    parent = parent .. arg .. "/"
-  end
-  return parent:sub(1,-2)
-end
-local json  = require(scriptPath('json'))
+local libPath = reaper.GetExtState("SAM_V2", "libPath")
+local json    = require('helpers.json')
 --------------------------------------------------------------------------------
 
+function q(text)
+  return "\'"..text.."\'"
+end
+
+function r(text, ...)
+  local args = {...}
+
+  for i, value in ipairs(args) do
+    text = text:gsub('#'..i, value)
+  end
+
+  return text
+end
+
 REP = {}
+REP.q = q
+REP.r = r
+
+function REP.run(...)
+  local command = table.concat({r('".#1console"', libPath), ...}, " ")
+  local result  = reaper.ExecProcess(command, 0):sub(3)
+  -- REP.print(result) -- for debugging
+  return json.decode(result)
+end
+
+function REP.callApi(node, apiCall, args)
+  args = args or nil
+  if args then
+    return REP.run("-c", node, apiCall, q(json.encode(args)))
+  end
+  return REP.run("-c", node, apiCall)
+end
 
 function REP.openNewTab()
   reaper.Main_OnCommand(40859, 0) -- open new tab
